@@ -8,3 +8,4 @@ pub mod length;
 //pub mod temperature;
 //pub mod substance_amount;
 //pub mod luminosity;
+pub mod area;

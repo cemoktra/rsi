@@ -1,137 +1,141 @@
-extern crate num_rational;
+//extern crate num_rational;
 use std::fmt;
-use std::ops::{Add,AddAssign,Sub,SubAssign};
-
+use std::ops::{Add,AddAssign,Sub,SubAssign,Mul};
+use crate::area::Area;
 
 // ========================================
 // Display trait
 // ========================================
-impl std::fmt::Display for si_length::Length {
+impl std::fmt::Display for Length {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", self.value(), si_length::unit_string(self.unit()))
+        write!(f, "{}{}", self.value(), unit_string(self.unit()))
     }
 }
 
 // ========================================
 // calculations
 // ========================================
-impl Add for si_length::Length {
-    type Output = si_length::Length;
-    fn add(self, other: si_length::Length) -> si_length::Length {
-        si_length::Length::meter(self.base_value() + other.base_value())
+impl Add for Length {
+    type Output = Length;
+    fn add(self, other: Length) -> Length {
+        Length::meter(self.base_value() + other.base_value())
     }
 }
 
-impl AddAssign for si_length::Length {
+impl AddAssign for Length {
     fn add_assign(&mut self, other: Self) {
-        *self = si_length::Length::meter(self.base_value() + other.base_value());
+        *self = Length::meter(self.base_value() + other.base_value());
     }
 }
 
-impl Sub for si_length::Length {
-    type Output = si_length::Length;
-    fn sub(self, other: si_length::Length) -> si_length::Length {
-        si_length::Length::meter(self.base_value() - other.base_value())
+impl Sub for Length {
+    type Output = Length;
+    fn sub(self, other: Length) -> Length {
+        Length::meter(self.base_value() - other.base_value())
     }
 }
 
-impl SubAssign for si_length::Length {
+impl SubAssign for Length {
     fn sub_assign(&mut self, other: Self) {
-        *self = si_length::Length::meter(self.base_value() - other.base_value());
+        *self = Length::meter(self.base_value() - other.base_value());
     }
 }
 
+impl Mul for Length {
+    type Output = Area;
+    fn mul(self, rhs: Length) -> Area {
+        Area::square_meter(self.base_value() * rhs.base_value())
+    }
+}
 
 // ========================================
 // Length module
 // ========================================
-mod si_length {
-    #[derive(Copy, Clone)]
-    pub enum LengthUnit {
-        Millimeter,
-        Centimeter,
-        Meter,
-        Kilometer
-    }
+#[derive(Copy, Clone)]
+pub enum LengthUnit {
+    Millimeter,
+    Centimeter,
+    Meter,
+    Kilometer
+}
 
-    pub fn length_ratio(unit: LengthUnit) -> num_rational::Ratio<i32>
+pub fn length_ratio(unit: LengthUnit) -> num_rational::Ratio<i32>
+{
+    match unit {
+        LengthUnit::Kilometer => num_rational::Ratio::new(1000, 1),
+        LengthUnit::Meter => num_rational::Ratio::new(1, 1),
+        LengthUnit::Centimeter => num_rational::Ratio::new(1, 100),
+        LengthUnit::Millimeter => num_rational::Ratio::new(1, 1000)
+    }
+}
+
+pub fn unit_string(unit: LengthUnit) -> String
+{
+    match unit {
+        LengthUnit::Kilometer => String::from("km"),
+        LengthUnit::Meter => String::from("m"),
+        LengthUnit::Centimeter => String::from("cm"),
+        LengthUnit::Millimeter => String::from("mm")
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct Length
+{
+    value: f64,
+    unit: LengthUnit,
+    ratio: num_rational::Ratio<i32>,
+}
+
+impl Length {
+    pub fn new(value: f64, unit: LengthUnit) -> Length
     {
-        match unit {
-            LengthUnit::Kilometer => num_rational::Ratio::new(1000, 1),
-            LengthUnit::Meter => num_rational::Ratio::new(1, 1),
-            LengthUnit::Centimeter => num_rational::Ratio::new(1, 100),
-            LengthUnit::Millimeter => num_rational::Ratio::new(1, 1000)
-        }
+        Length { value: value, ratio: length_ratio(unit), unit: unit }
     }
 
-    pub fn unit_string(unit: LengthUnit) -> String
+    pub fn millimeter(value: f64) -> Length
     {
-        match unit {
-            LengthUnit::Kilometer => String::from("km"),
-            LengthUnit::Meter => String::from("m"),
-            LengthUnit::Centimeter => String::from("cm"),
-            LengthUnit::Millimeter => String::from("mm")
-        }
+        Length { value: value, ratio: length_ratio(LengthUnit::Millimeter), unit: LengthUnit::Millimeter }
     }
-
-    #[derive(Copy, Clone)]
-    pub struct Length
+    pub fn centimeter(value: f64) -> Length
     {
-        value: f64,
-        unit: LengthUnit,
-        ratio: num_rational::Ratio<i32>,
+        Length { value: value, ratio: length_ratio(LengthUnit::Centimeter), unit: LengthUnit::Centimeter }
+    }
+    pub fn meter(value: f64) -> Length
+    {
+        Length { value: value, ratio: length_ratio(LengthUnit::Meter), unit: LengthUnit::Meter }
+    }
+    pub fn kilometer(value: f64) -> Length
+    {
+        Length { value: value, ratio: length_ratio(LengthUnit::Kilometer), unit: LengthUnit::Kilometer }
     }
 
-    impl Length {
-        pub fn new(value: f64, unit: LengthUnit) -> Length
-        {
-            Length { value: value, ratio: length_ratio(unit), unit: unit }
-        }
+    pub fn value(&self) -> f64
+    {
+        self.value
+    }
 
-        pub fn millimeter(value: f64) -> Length
-        {
-            Length { value: value, ratio: length_ratio(LengthUnit::Millimeter), unit: LengthUnit::Millimeter }
-        }
-        pub fn centimeter(value: f64) -> Length
-        {
-            Length { value: value, ratio: length_ratio(LengthUnit::Centimeter), unit: LengthUnit::Centimeter }
-        }
-        pub fn meter(value: f64) -> Length
-        {
-            Length { value: value, ratio: length_ratio(LengthUnit::Meter), unit: LengthUnit::Meter }
-        }
-        pub fn kilometer(value: f64) -> Length
-        {
-            Length { value: value, ratio: length_ratio(LengthUnit::Kilometer), unit: LengthUnit::Kilometer }
-        }
+    pub fn base_value(&self) -> f64
+    {
+        (*self.ratio.numer() as f64) * self.value / (*self.ratio.denom() as f64)
+    }
 
-        pub fn value(&self) -> f64
-        {
-            self.value
-        }
+    pub fn unit(&self) -> LengthUnit
+    {
+        self.unit
+    }
 
-        pub fn base_value(&self) -> f64
-        {
-            (*self.ratio.numer() as f64) * self.value / (*self.ratio.denom() as f64)
-        }
-
-        pub fn unit(&self) -> LengthUnit
-        {
-            self.unit
-        }
-
-        pub fn convert(&self, unit: LengthUnit) -> Length
-        {
-            let ratio = length_ratio(unit);
-            Length { value: self.base_value() * (*ratio.numer() as f64) / (*ratio.denom() as f64), ratio: ratio, unit: unit }
-        }
+    pub fn convert(&self, unit: LengthUnit) -> Length
+    {
+        let ratio = length_ratio(unit);
+        Length { value: self.base_value() * (*ratio.numer() as f64) / (*ratio.denom() as f64), ratio: ratio, unit: unit }
     }
 }
 
 
 #[cfg(test)]
 mod test {
-    use super::si_length::{Length, LengthUnit};
+    use super::{Length, LengthUnit};
 
     #[test]
     fn test_factories_() {

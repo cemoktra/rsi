@@ -128,7 +128,7 @@ impl Length {
     pub fn convert(&self, unit: LengthUnit) -> Length
     {
         let ratio = length_ratio(unit);
-        Length { value: self.base_value() * (*ratio.numer() as f64) / (*ratio.denom() as f64), ratio: ratio, unit: unit }
+        Length { value: self.base_value() * (*ratio.denom() as f64) / (*ratio.numer() as f64), ratio: ratio, unit: unit }
     }
 }
 
@@ -195,5 +195,7 @@ mod test {
         let km = Length::kilometer(1.5);
         let m = km.convert(LengthUnit::Meter);
         assert_eq!(1500.0, m.value());
+        let cm = km.convert(LengthUnit::Centimeter);
+        assert_eq!(150000.0, cm.value());
     }
 }

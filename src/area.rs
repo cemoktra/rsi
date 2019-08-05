@@ -42,7 +42,6 @@ impl SubAssign for Area {
 }
 
 impl Div<Length> for Area {
-    // The division of rational numbers is a closed operation.
     type Output = Length;
 
     fn div(self, rhs: Length) -> Length {
@@ -197,7 +196,11 @@ mod test {
         let km = Area::square_kilometer(1.5);
         let m = km.convert(AreaUnit::SquareMeter);
         assert_eq!(1500000.0, m.value());
+    }
 
+    #[test]
+    fn test_derived_units()
+    {
         let m = Length::meter(2.0);
         let cm = Length::centimeter(300.0);
         let area = m * cm;

@@ -1,7 +1,9 @@
 //extern crate num_rational;
 use std::fmt;
-use std::ops::{Add,AddAssign,Sub,SubAssign,Mul};
+use std::ops::{Add,AddAssign,Sub,SubAssign,Mul,Div};
 use crate::area::Area;
+use crate::velocity::Velocity;
+use crate::time::Time;
 
 // ========================================
 // Display trait
@@ -45,6 +47,22 @@ impl Mul for Length {
     type Output = Area;
     fn mul(self, rhs: Length) -> Area {
         Area::square_meter(self.base_value() * rhs.base_value())
+    }
+}
+
+impl Div<Time> for Length {
+    type Output = Velocity;
+
+    fn div(self, rhs: Time) -> Velocity {
+        Velocity::meter_per_second(self.base_value() / rhs.base_value())
+    }
+}
+
+impl Div<Velocity> for Length {
+    type Output = Time;
+
+    fn div(self, rhs: Velocity) -> Time {
+        Time::seconds(self.base_value() / rhs.base_value())
     }
 }
 

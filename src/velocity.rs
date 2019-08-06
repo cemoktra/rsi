@@ -1,52 +1,54 @@
 //extern crate num_rational;
 use std::fmt;
 use std::ops::{Add,AddAssign,Sub,SubAssign,Mul};
-use crate::length::Length;
-use crate::time::Time;
+use crate::value::{Value,ValueTrait};
+use crate::length::LengthUnit;
+use crate::time::TimeUnit;
 
 // ========================================
 // Display trait
 // ========================================
-impl std::fmt::Display for Velocity {
+impl std::fmt::Display for Value<VelocityUnit> {
    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-       write!(f, "{}{}", self.value(), unit_string(self.unit()))
+       write!(f, "{}{}", self.value(), self.unit_string())
    }
 }
 
 // ========================================
 // calculations
 // ========================================
-impl Add for Velocity {
-    type Output = Velocity;
-    fn add(self, other: Velocity) -> Velocity {
-        Velocity::meter_per_second(self.base_value() + other.base_value())
+impl Add for Value<VelocityUnit> {
+    type Output = Value<VelocityUnit>;
+    fn add(self, other: Value<VelocityUnit>) -> Value<VelocityUnit> {
+        Value { unit: VelocityUnit::MeterPerSecond, value: self.base_value() + other.base_value() }
     }
 }
 
-impl AddAssign for Velocity {
+impl AddAssign for Value<VelocityUnit> {
     fn add_assign(&mut self, other: Self) {
-        *self = Velocity::meter_per_second(self.base_value() + other.base_value());
+        *self = Value { unit: VelocityUnit::MeterPerSecond, value: self.base_value() + other.base_value() };
     }
 }
 
-impl Sub for Velocity {
-    type Output = Velocity;
-    fn sub(self, other: Velocity) -> Velocity {
-        Velocity::meter_per_second(self.base_value() - other.base_value())
+impl Sub for Value<VelocityUnit> {
+    type Output = Value<VelocityUnit>;
+    fn sub(self, other: Value<VelocityUnit>) -> Value<VelocityUnit> {
+        Value { unit: VelocityUnit::MeterPerSecond, value: self.base_value() - other.base_value() }
     }
 }
 
-impl SubAssign for Velocity {
+impl SubAssign for Value<VelocityUnit> {
     fn sub_assign(&mut self, other: Self) {
-        *self = Velocity::meter_per_second(self.base_value() - other.base_value());
+        *self = Value { unit: VelocityUnit::MeterPerSecond, value: self.base_value() - other.base_value() };
     }
 }
 
-impl Mul<Time> for Velocity {
-    type Output = Length;
 
-    fn mul(self, rhs: Time) -> Length {
-        Length::meter(self.base_value() * rhs.base_value())
+impl Mul<Value<TimeUnit>> for Value<VelocityUnit> {
+    type Output = Value<LengthUnit>;
+
+    fn mul(self, rhs: Value<TimeUnit>) -> Value<LengthUnit> {
+        Value { unit: LengthUnit::Meter, value: self.base_value() * rhs.base_value() }
     }
 }
 
@@ -59,94 +61,68 @@ pub enum VelocityUnit {
     KilometerPerHour,
 }
 
-pub fn velocity_ratio(unit: VelocityUnit) -> num_rational::Ratio<i32>
-{
-    match unit {
-        VelocityUnit::KilometerPerHour => num_rational::Ratio::new(3600, 1000),
-        VelocityUnit::MeterPerSecond => num_rational::Ratio::new(1, 1),
+impl VelocityUnit {
+    fn ratio(&self) -> num_rational::Ratio<i32>
+    {
+        match self {
+            VelocityUnit::KilometerPerHour => num_rational::Ratio::new(1000, 3600),
+            VelocityUnit::MeterPerSecond => num_rational::Ratio::new(1, 1),
+        }
+    }
+    
+    fn unit(&self) -> String
+    {   
+        match self {
+            VelocityUnit::KilometerPerHour => String::from("km/h"),
+            VelocityUnit::MeterPerSecond => String::from("m/s"),
+        }
     }
 }
 
-pub fn unit_string(unit: VelocityUnit) -> String
-{
-    match unit {
-        VelocityUnit::KilometerPerHour => String::from("km/h"),
-        VelocityUnit::MeterPerSecond => String::from("m/s"),
-    }
-}
-
-#[derive(Copy, Clone)]
-pub struct Velocity
-{
-    value: f64,
-    unit: VelocityUnit,
-    ratio: num_rational::Ratio<i32>,
-}
-
-impl Velocity {
-    pub fn new(value: f64, unit: VelocityUnit) -> Velocity
-    {
-        Velocity { value: value, ratio: velocity_ratio(unit), unit: unit }
-    }
-
-    pub fn meter_per_second(value: f64) -> Velocity
-    {
-        Velocity { value: value, ratio: velocity_ratio(VelocityUnit::MeterPerSecond), unit: VelocityUnit::MeterPerSecond }
-    }
-
-    pub fn kilometer_per_hour(value: f64) -> Velocity
-    {
-        Velocity { value: value, ratio: velocity_ratio(VelocityUnit::KilometerPerHour), unit: VelocityUnit::KilometerPerHour }
-    }
-
-    pub fn value(&self) -> f64
+impl ValueTrait<VelocityUnit> for Value<VelocityUnit> {
+    fn value(&self) -> f64
     {
         self.value
     }
-
-    pub fn base_value(&self) -> f64
+    fn base_value(&self) -> f64
     {
-        (*self.ratio.denom() as f64) * self.value / (*self.ratio.numer() as f64)
+        self.value * (*self.unit().ratio().numer() as f64) / (*self.unit().ratio().denom() as f64)
     }
-
-    pub fn unit(&self) -> VelocityUnit
+    fn unit(&self) -> VelocityUnit
     {
         self.unit
-    }
-
-    pub fn convert(&self, unit: VelocityUnit) -> Velocity
+    }    
+    fn unit_string(&self) -> String
     {
-        let ratio = velocity_ratio(unit);
-        Velocity { value: self.base_value() * (*ratio.numer() as f64) / (*ratio.denom() as f64), ratio: ratio, unit: unit }
+        self.unit.unit()
+    }
+    fn convert(&self, unit: VelocityUnit) -> Value<VelocityUnit>
+    {
+        Value { unit: unit, value: self.value() * (*self.unit().ratio().numer() as f64) * (*unit.ratio().denom() as f64) / ((*self.unit().ratio().denom() as f64) * (*unit.ratio().numer() as f64)) }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::{Velocity, VelocityUnit};
-    use crate::length::Length;
-    use crate::time::Time;
+    use super::VelocityUnit;
+    use crate::length::LengthUnit;
+    use crate::time::TimeUnit;
+    use crate::value::{Value,ValueTrait};
 
     #[test]
     fn test_factories_() {
-        let kmh = Velocity::kilometer_per_hour(3.6);
+        let kmh = Value { unit: VelocityUnit::KilometerPerHour, value: 3.6 };
+        let ms = Value { unit: VelocityUnit::MeterPerSecond, value: 2.0 };
         assert_eq!(3.6, kmh.value());
         assert_eq!(1.0, kmh.base_value());
-
-        let ms = Velocity::meter_per_second(2.0);
         assert_eq!(2.0, ms.value());
         assert_eq!(2.0, ms.base_value());
-
-        let n = Velocity::new(2.0, VelocityUnit::MeterPerSecond);
-        assert_eq!(2.0, n.value());
-        assert_eq!(2.0, n.base_value());
     }
 
     #[test]
     fn test_calculations() {
-        let mut ms = Velocity::meter_per_second(5.0);
-        let kmh = Velocity::kilometer_per_hour(3.6);
-
+        let mut ms = Value { unit: VelocityUnit::MeterPerSecond, value: 5.0 };
+        let kmh = Value { unit: VelocityUnit::KilometerPerHour, value: 3.6 };
         let a = ms + kmh;
         assert_eq!(6.0, a.value());
         let b = ms - kmh;
@@ -159,16 +135,15 @@ mod test {
 
     #[test]
     fn test_strings() {
-        let kmh = Velocity::kilometer_per_hour(3.0);
+        let kmh = Value { unit: VelocityUnit::KilometerPerHour, value: 3.0 };
+        let ms = Value { unit: VelocityUnit::MeterPerSecond, value: 2.5 };
         assert_eq!("3km/h", kmh.to_string());
-
-        let ms = Velocity::meter_per_second(2.5);
         assert_eq!("2.5m/s", ms.to_string());
     }
 
     #[test]
     fn test_conversion() {
-        let kmh = Velocity::kilometer_per_hour(3.6);
+        let kmh = Value { unit: VelocityUnit::KilometerPerHour, value: 3.6 };
         let ms = kmh.convert(VelocityUnit::MeterPerSecond);
         assert_eq!(1.0, ms.value());
     }
@@ -176,8 +151,8 @@ mod test {
     #[test]
     fn test_derived_units()
     {
-        let m = Length::meter(6.0);
-        let s = Time::seconds(2.0);
+        let m = Value { unit: LengthUnit::Meter, value: 6.0 };
+        let s = Value { unit: TimeUnit::Seconds, value: 2.0 };
         let v = m / s;
         assert_eq!(3.0, v.value());
         let m2 = v * s;

@@ -1,68 +1,69 @@
 //extern crate num_rational;
 use std::fmt;
 use std::ops::{Add,AddAssign,Sub,SubAssign,Mul,Div};
-use crate::area::Area;
-use crate::velocity::Velocity;
-use crate::time::Time;
+use crate::value::{Value,ValueTrait};
+use crate::area::AreaUnit;
+use crate::time::TimeUnit;
+use crate::velocity::VelocityUnit;
 
 // ========================================
 // Display trait
 // ========================================
-impl std::fmt::Display for Length {
+impl std::fmt::Display for Value<LengthUnit> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", self.value(), unit_string(self.unit()))
+        write!(f, "{}{}", self.value(), self.unit_string())
     }
 }
 
 // ========================================
 // calculations
 // ========================================
-impl Add for Length {
-    type Output = Length;
-    fn add(self, other: Length) -> Length {
-        Length::meter(self.base_value() + other.base_value())
+impl Add for Value<LengthUnit> {
+    type Output = Value<LengthUnit>;
+    fn add(self, other: Value<LengthUnit>) -> Value<LengthUnit> {
+        Value { unit: LengthUnit::Meter, value: self.base_value() + other.base_value() }
     }
 }
 
-impl AddAssign for Length {
+impl AddAssign for Value<LengthUnit> {
     fn add_assign(&mut self, other: Self) {
-        *self = Length::meter(self.base_value() + other.base_value());
+        *self = Value { unit: LengthUnit::Meter, value: self.base_value() + other.base_value() };
     }
 }
 
-impl Sub for Length {
-    type Output = Length;
-    fn sub(self, other: Length) -> Length {
-        Length::meter(self.base_value() - other.base_value())
+impl Sub for Value<LengthUnit> {
+    type Output = Value<LengthUnit>;
+    fn sub(self, other: Value<LengthUnit>) -> Value<LengthUnit> {
+        Value { unit: LengthUnit::Meter, value: self.base_value() - other.base_value() }
     }
 }
 
-impl SubAssign for Length {
+impl SubAssign for Value<LengthUnit> {
     fn sub_assign(&mut self, other: Self) {
-        *self = Length::meter(self.base_value() - other.base_value());
+        *self = Value { unit: LengthUnit::Meter, value: self.base_value() - other.base_value() };
     }
 }
 
-impl Mul for Length {
-    type Output = Area;
-    fn mul(self, rhs: Length) -> Area {
-        Area::square_meter(self.base_value() * rhs.base_value())
+impl Mul for Value<LengthUnit> {
+    type Output = Value<AreaUnit>;
+    fn mul(self, rhs: Value<LengthUnit>) -> Value<AreaUnit> {
+        Value { unit: AreaUnit::SquareMeter, value: self.base_value() * rhs.base_value() }
     }
 }
 
-impl Div<Time> for Length {
-    type Output = Velocity;
+impl Div<Value<TimeUnit>> for Value<LengthUnit> {
+    type Output = Value<VelocityUnit>;
 
-    fn div(self, rhs: Time) -> Velocity {
-        Velocity::meter_per_second(self.base_value() / rhs.base_value())
+    fn div(self, rhs: Value<TimeUnit>) -> Value<VelocityUnit> {
+        Value { unit: VelocityUnit::MeterPerSecond, value: self.base_value() / rhs.base_value() }
     }
 }
 
-impl Div<Velocity> for Length {
-    type Output = Time;
+impl Div<Value<VelocityUnit>> for Value<LengthUnit> {
+    type Output = Value<TimeUnit>;
 
-    fn div(self, rhs: Velocity) -> Time {
-        Time::seconds(self.base_value() / rhs.base_value())
+    fn div(self, rhs: Value<VelocityUnit>) -> Value<TimeUnit> {
+        Value { unit: TimeUnit::Seconds, value: self.base_value() / rhs.base_value() }
     }
 }
 
@@ -77,111 +78,80 @@ pub enum LengthUnit {
     Kilometer
 }
 
-pub fn length_ratio(unit: LengthUnit) -> num_rational::Ratio<i32>
-{
-    match unit {
-        LengthUnit::Kilometer => num_rational::Ratio::new(1000, 1),
-        LengthUnit::Meter => num_rational::Ratio::new(1, 1),
-        LengthUnit::Centimeter => num_rational::Ratio::new(1, 100),
-        LengthUnit::Millimeter => num_rational::Ratio::new(1, 1000)
+impl LengthUnit {
+    fn ratio(&self) -> num_rational::Ratio<i32>
+    {
+        match self {
+            LengthUnit::Kilometer => num_rational::Ratio::new(1000, 1),
+            LengthUnit::Meter => num_rational::Ratio::new(1, 1),
+            LengthUnit::Centimeter => num_rational::Ratio::new(1, 100),
+            LengthUnit::Millimeter => num_rational::Ratio::new(1, 1000),
+        }
+    }
+    
+    fn unit(&self) -> String
+    {   
+        match self {
+            LengthUnit::Kilometer => String::from("km"),
+            LengthUnit::Meter => String::from("m"),
+            LengthUnit::Centimeter => String::from("cm"),
+            LengthUnit::Millimeter => String::from("mm")
+        }
     }
 }
 
-pub fn unit_string(unit: LengthUnit) -> String
-{
-    match unit {
-        LengthUnit::Kilometer => String::from("km"),
-        LengthUnit::Meter => String::from("m"),
-        LengthUnit::Centimeter => String::from("cm"),
-        LengthUnit::Millimeter => String::from("mm")
-    }
-}
-
-#[derive(Copy, Clone)]
-pub struct Length
-{
-    value: f64,
-    unit: LengthUnit,
-    ratio: num_rational::Ratio<i32>,
-}
-
-impl Length {
-    pub fn new(value: f64, unit: LengthUnit) -> Length
-    {
-        Length { value: value, ratio: length_ratio(unit), unit: unit }
-    }
-
-    pub fn millimeter(value: f64) -> Length
-    {
-        Length { value: value, ratio: length_ratio(LengthUnit::Millimeter), unit: LengthUnit::Millimeter }
-    }
-    pub fn centimeter(value: f64) -> Length
-    {
-        Length { value: value, ratio: length_ratio(LengthUnit::Centimeter), unit: LengthUnit::Centimeter }
-    }
-    pub fn meter(value: f64) -> Length
-    {
-        Length { value: value, ratio: length_ratio(LengthUnit::Meter), unit: LengthUnit::Meter }
-    }
-    pub fn kilometer(value: f64) -> Length
-    {
-        Length { value: value, ratio: length_ratio(LengthUnit::Kilometer), unit: LengthUnit::Kilometer }
-    }
-
-    pub fn value(&self) -> f64
+impl ValueTrait<LengthUnit> for Value<LengthUnit> {
+    fn value(&self) -> f64
     {
         self.value
     }
-
-    pub fn base_value(&self) -> f64
+    fn base_value(&self) -> f64
     {
-        (*self.ratio.numer() as f64) * self.value / (*self.ratio.denom() as f64)
+        self.value * (*self.unit().ratio().numer() as f64) / (*self.unit().ratio().denom() as f64)
     }
-
-    pub fn unit(&self) -> LengthUnit
+    fn unit(&self) -> LengthUnit
     {
         self.unit
-    }
-
-    pub fn convert(&self, unit: LengthUnit) -> Length
+    }    
+    fn unit_string(&self) -> String
     {
-        let ratio = length_ratio(unit);
-        Length { value: self.base_value() * (*ratio.denom() as f64) / (*ratio.numer() as f64), ratio: ratio, unit: unit }
+        self.unit.unit()
+    }
+    fn convert(&self, unit: LengthUnit) -> Value<LengthUnit>
+    {
+        Value { unit: unit, value: self.value() * (*self.unit().ratio().numer() as f64) * (*unit.ratio().denom() as f64) / ((*self.unit().ratio().denom() as f64) * (*unit.ratio().numer() as f64)) }
     }
 }
 
 
 #[cfg(test)]
 mod test {
-    use super::{Length, LengthUnit};
+    use super::{LengthUnit};
+    use crate::value::{Value,ValueTrait};
 
     #[test]
     fn test_factories_() {
-        let km = Length::kilometer(3.0);
+        let km = Value { unit: LengthUnit::Kilometer, value: 3.0 };
         assert_eq!(3.0, km.value());
         assert_eq!(3000.0, km.base_value());
 
-        let m = Length::meter(2.0);
+        let m = Value { unit: LengthUnit::Meter, value: 2.0 };
         assert_eq!(2.0, m.value());
         assert_eq!(2.0, m.base_value());
 
-        let cm = Length::centimeter(50.0);
+        let cm = Value { unit: LengthUnit::Centimeter, value: 50.0 };
         assert_eq!(50.0, cm.value());
         assert_eq!(0.5, cm.base_value());
 
-        let mm = Length::millimeter(20.0);
+        let mm = Value { unit: LengthUnit::Millimeter, value: 20.0 };
         assert_eq!(20.0, mm.value());
         assert_eq!(0.02, mm.base_value());
-
-        let n = Length::new(2.0, LengthUnit::Meter);
-        assert_eq!(2.0, n.value());
-        assert_eq!(2.0, n.base_value());
     }
 
     #[test]
     fn test_calculations() {
-        let mut m = Length::meter(2.0);
-        let cm = Length::centimeter(50.0);
+        let mut m = Value { unit: LengthUnit::Meter, value: 2.0 };
+        let cm = Value { unit: LengthUnit::Centimeter, value: 50.0 };
 
         let a = m + cm;
         assert_eq!(2.5, a.value());
@@ -195,25 +165,22 @@ mod test {
 
     #[test]
     fn test_strings() {
-        let km = Length::kilometer(3.0);
+        let km = Value { unit: LengthUnit::Kilometer, value: 3.0 };
+        let m = Value { unit: LengthUnit::Meter, value: 2.5 };
+        let cm = Value { unit: LengthUnit::Centimeter, value: 50.0 };
+        let mm = Value { unit: LengthUnit::Millimeter, value: 20.2 };
         assert_eq!("3km", km.to_string());
-
-        let m = Length::meter(2.5);
         assert_eq!("2.5m", m.to_string());
-
-        let cm = Length::centimeter(50.0);
         assert_eq!("50cm", cm.to_string());
-
-        let mm = Length::millimeter(20.2);
         assert_eq!("20.2mm", mm.to_string());
     }
 
     #[test]
     fn test_conversion() {
-        let km = Length::kilometer(1.5);
+        let km = Value { unit: LengthUnit::Kilometer, value: 1.5 };
         let m = km.convert(LengthUnit::Meter);
-        assert_eq!(1500.0, m.value());
         let cm = km.convert(LengthUnit::Centimeter);
+        assert_eq!(1500.0, m.value());
         assert_eq!(150000.0, cm.value());
     }
 }

@@ -5,7 +5,7 @@ pub mod value;
 
 // base si units
 pub mod length;
-//pub mod mass;
+pub mod mass;
 pub mod time;
 //pub mod electric_current;
 //pub mod temperature;

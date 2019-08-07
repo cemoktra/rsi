@@ -1,8 +1,9 @@
 //extern crate num_rational;
 use std::fmt;
-use std::ops::{Add,AddAssign,Sub,SubAssign,Div};
+use std::ops::{Add,AddAssign,Sub,SubAssign,Mul,Div};
 use crate::value::{Value,ValueTrait};
 use crate::length::LengthUnit;
+use crate::volume::VolumeUnit;
 
 // ========================================
 // Display trait
@@ -39,6 +40,20 @@ impl Sub for Value<AreaUnit> {
 impl SubAssign for Value<AreaUnit> {
     fn sub_assign(&mut self, other: Self) {
         *self = Value { unit: AreaUnit::SquareMeter, value: self.base_value() - other.base_value() };
+    }
+}
+
+impl Mul<Value<LengthUnit>> for Value<AreaUnit> {
+    type Output = Value<VolumeUnit>;
+    fn mul(self, rhs: Value<LengthUnit>) -> Value<VolumeUnit> {
+        Value { unit: VolumeUnit::CubicMeter, value: self.base_value() * rhs.base_value() }
+    }
+}
+
+impl Mul<Value<AreaUnit>> for Value<LengthUnit> {
+    type Output = Value<VolumeUnit>;
+    fn mul(self, rhs: Value<AreaUnit>) -> Value<VolumeUnit> {
+        Value { unit: VolumeUnit::CubicMeter, value: self.base_value() * rhs.base_value() }
     }
 }
 

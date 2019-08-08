@@ -1,47 +1,4 @@
-//extern crate num_rational;
-use std::fmt;
-use std::ops::{Add,AddAssign,Sub,SubAssign};
-use crate::value::{Value,ValueTrait};
-
-// ========================================
-// Display trait
-// ========================================
-impl std::fmt::Display for Value<TimeUnit> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", self.value(), self.unit_string())
-    }
-}
-
-
-// ========================================
-// calculations
-// ========================================
-impl Add for Value<TimeUnit> {
-    type Output = Value<TimeUnit>;
-    fn add(self, other: Value<TimeUnit>) -> Value<TimeUnit> {
-        Value { unit: TimeUnit::Seconds, value: self.base_value() + other.base_value() }
-    }
-}
-
-impl AddAssign for Value<TimeUnit> {
-    fn add_assign(&mut self, other: Self) {
-        *self = Value { unit: TimeUnit::Seconds, value: self.base_value() + other.base_value() };
-    }
-}
-
-impl Sub for Value<TimeUnit> {
-    type Output = Value<TimeUnit>;
-    fn sub(self, other: Value<TimeUnit>) -> Value<TimeUnit> {
-        Value { unit: TimeUnit::Seconds, value: self.base_value() - other.base_value() }
-    }
-}
-
-impl SubAssign for Value<TimeUnit> {
-    fn sub_assign(&mut self, other: Self) {
-        *self = Value { unit: TimeUnit::Seconds, value: self.base_value() - other.base_value() };
-    }
-}
-
+use crate::value::{Unit};
 
 // ========================================
 // Time module
@@ -55,19 +12,21 @@ pub enum TimeUnit {
     Milliseconds
 }
 
-impl TimeUnit {
-    fn ratio(&self) -> num_rational::Ratio<i32>
+impl Unit for TimeUnit {
+    type UnitEnum = TimeUnit;
+
+    fn ratio(&self) -> f64
     {
         match self {
-            TimeUnit::Milliseconds => num_rational::Ratio::new(1, 1000),
-            TimeUnit::Seconds => num_rational::Ratio::new(1, 1),
-            TimeUnit::Minutes => num_rational::Ratio::new(60, 1),
-            TimeUnit::Hours => num_rational::Ratio::new(60 * 60, 1),
-            TimeUnit::Days => num_rational::Ratio::new(24 * 60* 60, 1)
+            TimeUnit::Milliseconds => 0.001,
+            TimeUnit::Seconds => 1.0,
+            TimeUnit::Minutes => 60.0,
+            TimeUnit::Hours => 60.0 * 60.0,
+            TimeUnit::Days => 24.0 * 60.0 * 60.0
         }
     }
     
-    fn unit(&self) -> String
+    fn abbr(&self) -> String
     {   
         match self {
             TimeUnit::Milliseconds => String::from("ms"),
@@ -79,41 +38,19 @@ impl TimeUnit {
     }
 }
 
-impl ValueTrait<TimeUnit> for Value<TimeUnit> {
-    fn value(&self) -> f64
-    {
-        self.value
-    }
-    fn base_value(&self) -> f64
-    {
-        self.value * (*self.unit().ratio().numer() as f64) / (*self.unit().ratio().denom() as f64)
-    }
-    fn unit(&self) -> TimeUnit
-    {
-        self.unit
-    }    
-    fn unit_string(&self) -> String
-    {
-        self.unit.unit()
-    }
-    fn convert(&self, unit: TimeUnit) -> Value<TimeUnit>
-    {
-        Value { unit: unit, value: self.value() * (*self.unit().ratio().numer() as f64) * (*unit.ratio().denom() as f64) / ((*self.unit().ratio().denom() as f64) * (*unit.ratio().numer() as f64)) }
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::{TimeUnit};
-    use crate::value::{Value,ValueTrait};
+    use crate::value::{Value};
 
     #[test]
     fn test_factories_() {
-        let d = Value { unit: TimeUnit::Days, value: 1.0 };
-        let h = Value { unit: TimeUnit::Hours, value: 2.0 };
-        let min = Value { unit: TimeUnit::Minutes, value: 5.0 };
-        let s = Value { unit: TimeUnit::Seconds, value: 20.0 };
-        let ms = Value { unit: TimeUnit::Milliseconds, value: 20.0 };
+        let d   = Value::new(TimeUnit::Days, 1.0);
+        let h   = Value::new(TimeUnit::Hours, 2.0);
+        let min = Value::new(TimeUnit::Minutes, 5.0);
+        let s   = Value::new(TimeUnit::Seconds, 20.0);
+        let ms  = Value::new(TimeUnit::Milliseconds, 20.0);
+
         assert_eq!(1.0, d.value());
         assert_eq!(24.0 * 60.0 * 60.0, d.base_value());
         assert_eq!(2.0, h.value());
@@ -128,13 +65,13 @@ mod test {
 
     #[test]
     fn test_calculations() {
-        let mut s = Value { unit: TimeUnit::Seconds, value: 30.0 };
-        let min = Value { unit: TimeUnit::Minutes, value: 2.0 };
+        let mut s = Value::new(TimeUnit::Seconds, 30.0);
+        let min   = Value::new(TimeUnit::Minutes, 2.0);
 
         let a = min + s;
-        assert_eq!(150.0, a.value());
+        assert_eq!(2.5, a.value());
         let b = min - s;
-        assert_eq!(90.0, b.value());
+        assert_eq!(1.5, b.value());
         s += min;
         assert_eq!(150.0, s.value());
         s -= min;
@@ -143,11 +80,11 @@ mod test {
 
     #[test]
     fn test_strings() {
-        let d = Value { unit: TimeUnit::Days, value: 3.0 };
-        let h = Value { unit: TimeUnit::Hours, value: 2.0 };
-        let min = Value { unit: TimeUnit::Minutes, value: 50.0 };
-        let s = Value { unit: TimeUnit::Seconds, value: 2.5 };
-        let ms = Value { unit: TimeUnit::Milliseconds, value: 20.2 };
+        let d   = Value::new(TimeUnit::Days, 3.0);
+        let h   = Value::new(TimeUnit::Hours, 2.0);
+        let min = Value::new(TimeUnit::Minutes, 50.0);
+        let s   = Value::new(TimeUnit::Seconds, 2.5);
+        let ms  = Value::new(TimeUnit::Milliseconds, 20.2);
         assert_eq!("3d", d.to_string());
         assert_eq!("2h", h.to_string());
         assert_eq!("50min", min.to_string());
@@ -157,7 +94,7 @@ mod test {
 
     #[test]
     fn test_conversion() {
-        let h = Value { unit: TimeUnit::Hours, value: 1.5 };
+        let h = Value::new(TimeUnit::Hours, 1.5);
         let min = h.convert(TimeUnit::Minutes);
         assert_eq!(90.0, min.value());
     }

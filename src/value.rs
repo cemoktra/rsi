@@ -47,7 +47,7 @@ impl<T: Unit + Copy> Add for Value<T> {
         {
             Value::new(self.unit, ((self.value * self.unit.ratio()) + (other.value * other.unit.ratio())) / self.unit.ratio())
         } else {
-            Value::new(self.unit, ((self.value * self.unit.ratio()) + (other.value * other.unit.ratio())) / other.unit.ratio())
+            Value::new(other.unit, ((self.value * self.unit.ratio()) + (other.value * other.unit.ratio())) / other.unit.ratio())
         }
     }
 }
@@ -60,7 +60,7 @@ impl<T: Unit + Copy> Sub for Value<T> {
         {
             Value::new(self.unit, ((self.value * self.unit.ratio()) - (other.value * other.unit.ratio())) / self.unit.ratio())
         } else {
-            Value::new(self.unit, ((self.value * self.unit.ratio()) - (other.value * other.unit.ratio())) / other.unit.ratio())
+            Value::new(other.unit, ((self.value * self.unit.ratio()) - (other.value * other.unit.ratio())) / other.unit.ratio())
         }
     }
 }

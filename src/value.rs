@@ -8,14 +8,6 @@ pub trait Unit
     fn abbr(&self) -> String;
 }
 
-// pub trait ValueTrait<T> {
-//     fn value(&self) -> f64;
-//     fn base_value(&self) -> f64;
-//     fn unit(&self) -> T;
-//     fn unit_string(&self) -> String;
-//     fn convert(&self, unit: T) -> Value<T>;
-// }
-
 #[derive(Copy, Clone)]
 pub struct Value<T> {
     unit: T,

@@ -23,7 +23,7 @@ impl Div<Value<AreaUnit>> for Value<VolumeUnit> {
 }
 
 // ========================================
-// Area module
+// Volume module
 // ========================================
 #[derive(Copy, Clone)]
 pub enum VolumeUnit {

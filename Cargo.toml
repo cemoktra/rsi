@@ -3,6 +3,3 @@ name = "si-units"
 version = "0.1.0"
 authors = ["bazz-dee"]
 edition = "2018"
-
-[dependencies]
-num-rational = "0.2.2"

@@ -16,3 +16,6 @@ pub mod mass;
 pub mod area;
 pub mod volume;
 pub mod velocity;
+
+// calculations
+pub mod calc;

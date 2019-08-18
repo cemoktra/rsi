@@ -1,19 +1,4 @@
-use std::ops::{Mul};
-use crate::value::{Value,Unit};
-use crate::length::LengthUnit;
-use crate::time::TimeUnit;
-
-// ========================================
-// calculations
-// ========================================
-
-impl Mul<Value<TimeUnit>> for Value<VelocityUnit> {
-    type Output = Value<LengthUnit>;
-
-    fn mul(self, rhs: Value<TimeUnit>) -> Value<LengthUnit> {
-        Value::new(LengthUnit::Meter, self.base_value() * rhs.base_value())
-    }
-}
+use crate::value::Unit;
 
 // ========================================
 // Velocity module
@@ -47,9 +32,7 @@ impl Unit for VelocityUnit {
 #[cfg(test)]
 mod test {
     use super::VelocityUnit;
-    use crate::length::LengthUnit;
-    use crate::time::TimeUnit;
-    use crate::value::{Value};
+    use crate::value::Value;
 
     #[test]
     fn test_factories_() {
@@ -88,19 +71,5 @@ mod test {
         let kmh = Value::new(VelocityUnit::KilometerPerHour, 3.6);
         let ms  = kmh.convert(VelocityUnit::MeterPerSecond);
         assert_eq!(1.0, ms.value());
-    }
-
-    #[test]
-    fn test_derived_units()
-    {
-        let m = Value::new(LengthUnit::Meter, 6.0);
-        let s = Value::new(TimeUnit::Seconds, 2.0);
-
-        let v = m / s;
-        assert_eq!(3.0, v.value());
-        let m2 = v * s;
-        assert_eq!(m.value(), m2.value());
-        let s2 = m / v;
-        assert_eq!(s.value(), s2.value());
     }
 }

@@ -1,24 +1,4 @@
-use std::ops::{Mul,Div};
-use crate::value::{Value,Unit};
-use crate::length::LengthUnit;
-use crate::volume::VolumeUnit;
-
-// ========================================
-// calculations
-// ========================================
-impl Div<Value<LengthUnit>> for Value<AreaUnit> {
-    type Output = Value<LengthUnit>;
-    fn div(self, rhs: Value<LengthUnit>) -> Value<LengthUnit> {
-        Value::new(LengthUnit::Meter, self.base_value() / rhs.base_value())
-    }
-}
-
-impl Mul<Value<LengthUnit>> for Value<AreaUnit> {
-    type Output = Value<VolumeUnit>;
-    fn mul(self, rhs: Value<LengthUnit>) -> Value<VolumeUnit> {
-        Value::new(VolumeUnit::CubicMeter, self.base_value() * rhs.base_value())
-    }
-}
+use crate::value::Unit;
 
 // ========================================
 // Area module
@@ -57,9 +37,8 @@ impl Unit for AreaUnit {
 
 #[cfg(test)]
 mod test {
-    use super::{AreaUnit};
-    use crate::value::{Value};
-    use crate::length::LengthUnit;
+    use super::AreaUnit;
+    use crate::value::Value;
 
     #[test]
     fn test_factories_() {
@@ -109,16 +88,5 @@ mod test {
         let km = Value::new(AreaUnit::SquareKilometer, 1.5);
         let m = km.convert(AreaUnit::SquareMeter);
         assert_eq!(1500000.0, m.value());
-    }
-
-    #[test]
-    fn test_derived_units()
-    {
-        let m  = Value::new(LengthUnit::Meter, 2.0);
-        let cm = Value::new(LengthUnit::Centimeter, 300.0);
-        let area = m * cm;
-        assert_eq!(6.0, area.value());
-        let x = area / m;
-        assert_eq!(cm.base_value(), x.value());
     }
 }

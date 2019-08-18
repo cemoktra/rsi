@@ -1,42 +1,4 @@
-use std::ops::{Mul,Div};
-use crate::value::{Value,Unit};
-use crate::area::AreaUnit;
-use crate::volume::VolumeUnit;
-use crate::time::TimeUnit;
-use crate::velocity::VelocityUnit;
-
-// ========================================
-// calculations
-// ========================================
-impl Mul for Value<LengthUnit> {
-    type Output = Value<AreaUnit>;
-    fn mul(self, rhs: Value<LengthUnit>) -> Value<AreaUnit> {
-        Value::new(AreaUnit::SquareMeter, self.base_value() * rhs.base_value())
-    }
-}
-
-impl Mul<Value<AreaUnit>> for Value<LengthUnit> {
-    type Output = Value<VolumeUnit>;
-    fn mul(self, rhs: Value<AreaUnit>) -> Value<VolumeUnit> {
-        Value::new(VolumeUnit::CubicMeter, self.base_value() * rhs.base_value())
-    }
-}
-
-impl Div<Value<TimeUnit>> for Value<LengthUnit> {
-    type Output = Value<VelocityUnit>;
-
-    fn div(self, rhs: Value<TimeUnit>) -> Value<VelocityUnit> {
-        Value::new(VelocityUnit::MeterPerSecond, self.base_value() / rhs.base_value())
-    }
-}
-
-impl Div<Value<VelocityUnit>> for Value<LengthUnit> {
-    type Output = Value<TimeUnit>;
-
-    fn div(self, rhs: Value<VelocityUnit>) -> Value<TimeUnit> {
-        Value::new(TimeUnit::Seconds, self.base_value() / rhs.base_value())
-    }
-}
+use crate::value::Unit;
 
 // ========================================
 // Length module
@@ -75,8 +37,8 @@ impl Unit for LengthUnit {
 
 #[cfg(test)]
 mod test {
-    use super::{LengthUnit};
-    use crate::value::{Value};
+    use super::LengthUnit;
+    use crate::value::Value;
 
     #[test]
     fn test_factories_() {

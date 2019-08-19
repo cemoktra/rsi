@@ -19,3 +19,6 @@ pub mod velocity;
 
 // calculations
 pub mod calc;
+
+// tests
+pub mod test;

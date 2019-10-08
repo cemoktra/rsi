@@ -1,8 +1,0 @@
-language: rust
-rust:
-  - stable
-script:
-  - cargo test --verbose --lib
-branches:
-  only:
-  - master

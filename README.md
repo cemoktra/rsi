@@ -1,4 +1,4 @@
-![Build Status](https://github.com/cemoktra/rsi/workflows/Rust/badge.svg)
+[![Build Status](https://github.com/cemoktra/rsi/workflows/Rust/badge.svg)](https://github.com/cemoktra/rsi/actions)
 
 # rsi
 SI units for rust. This is started as a sandbox project to learn rust.
